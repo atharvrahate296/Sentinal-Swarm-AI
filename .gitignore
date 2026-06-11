@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+temp-node/
+temp-git/
+node.zip
+package-lock.json
+
+# Local databases & logs
+*.db
+*.log
+.gemini/
+.system_generated/
+
+# Production builds
+dist/
+build/
+
+# Environment configurations
+.env
+.env.*
+.git-credentials
+.npmrc
