@@ -51,6 +51,43 @@
   --transition-slow: 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Executive Boardroom Persona Class Overrides */
+.theme-ceo {
+  --accent-primary: #ff9f0a;
+  --accent-glow: rgba(255, 159, 10, 0.2);
+  --accent-info: #ff9f0a;
+  --accent-cyan: #ffc400;
+  --shadow-glow-blue: 0 0 24px rgba(255, 159, 10, 0.25);
+  --border-focus: #ff9f0a;
+}
+
+.theme-ciso {
+  --accent-primary: #e2e8f0;
+  --accent-glow: rgba(226, 232, 240, 0.2);
+  --accent-info: #94a3b8;
+  --accent-cyan: #f8fafc;
+  --shadow-glow-blue: 0 0 24px rgba(226, 232, 240, 0.25);
+  --border-focus: #cbd5e1;
+}
+
+.theme-operations {
+  --accent-primary: #30d158;
+  --accent-glow: rgba(48, 209, 88, 0.2);
+  --accent-info: #00e5ff;
+  --accent-cyan: #00e5ff;
+  --shadow-glow-blue: 0 0 24px rgba(48, 209, 88, 0.25);
+  --border-focus: #30d158;
+}
+
+.theme-investor {
+  --accent-primary: #bf5af2;
+  --accent-glow: rgba(191, 90, 242, 0.2);
+  --accent-info: #ff79c6;
+  --accent-cyan: #ff79c6;
+  --shadow-glow-blue: 0 0 24px rgba(191, 90, 242, 0.25);
+  --border-focus: #bf5af2;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 5px;
