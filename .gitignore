@@ -13,6 +13,7 @@ package-lock.json
 
 # Production builds
 dist/
+dist
 build/
 
 # Environment configurations
