@@ -30,6 +30,8 @@ const DEFAULT_PREDICTION: PredictionReport = {
   status: 'LOW',
 };
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export function useApi() {
   const [state, setState] = useState<ApiState>({
     events: [],
@@ -57,14 +59,14 @@ export function useApi() {
     try {
       const [evtsRes, metricsRes, configsRes, simsRes, predRes, bbRes, immRes, ecoRes] =
         await Promise.all([
-          fetch('/api/events'),
-          fetch('/api/metrics'),
-          fetch('/api/configs'),
-          fetch('/api/simulations'),
-          fetch('/api/prediction'),
-          fetch('/api/blackbox'),
-          fetch('/api/immune'),
-          fetch('/api/ecosystem'),
+          fetch(`${API_BASE_URL}/api/events`),
+          fetch(`${API_BASE_URL}/api/metrics`),
+          fetch(`${API_BASE_URL}/api/configs`),
+          fetch(`${API_BASE_URL}/api/simulations`),
+          fetch(`${API_BASE_URL}/api/prediction`),
+          fetch(`${API_BASE_URL}/api/blackbox`),
+          fetch(`${API_BASE_URL}/api/immune`),
+          fetch(`${API_BASE_URL}/api/ecosystem`),
         ]);
 
       const [events, metrics, configs, simulations, prediction, blackBoxLogs, immuneRules, ecosystemAgents] =
@@ -112,7 +114,7 @@ export function useApi() {
 
   const updateConfig = useCallback(async (key: string, value: string) => {
     try {
-      await fetch('/api/configs', {
+      await fetch(`${API_BASE_URL}/api/configs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key, value }),

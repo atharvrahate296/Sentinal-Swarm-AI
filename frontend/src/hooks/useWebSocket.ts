@@ -16,8 +16,15 @@ export function useWebSocket({ onMetricsUpdate }: UseWebSocketOptions) {
     if (!isMounted.current) return;
 
     try {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const ws = new WebSocket(`${protocol}//${window.location.host}`);
+      const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+      let wsUrl = '';
+      if (API_BASE_URL) {
+        wsUrl = API_BASE_URL.replace(/^http/, 'ws');
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}`;
+      }
+      const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         reconnectAttempts.current = 0;

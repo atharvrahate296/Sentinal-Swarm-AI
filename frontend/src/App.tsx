@@ -36,6 +36,8 @@ import { StorytellingOverlay } from './components/shared/StorytellingOverlay';
 
 const MAX_LOGS = 100;
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState<ActiveTab>('swarm');
@@ -139,7 +141,7 @@ export default function App() {
     setSystemThreatLevel('EVALUATING');
 
     try {
-      const response = await fetch('/api/simulations/run', {
+      const response = await fetch(`${API_BASE_URL}/api/simulations/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
@@ -214,7 +216,7 @@ export default function App() {
     } else {
       setIsExecuting(true);
       try {
-        const response = await fetch('/api/orchestrate', {
+        const response = await fetch(`${API_BASE_URL}/api/orchestrate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: spotlightQuery, role: rbacRole }),
