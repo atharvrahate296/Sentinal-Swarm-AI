@@ -1,29 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  Activity, 
-  Tv, 
-  Sparkles, 
-  Compass, 
-  Layout, 
-  Monitor, 
-  ShieldAlert 
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Tv,
+  Sparkles,
 } from 'lucide-react';
-import { VideoSynth } from '../video_synth';
 
-// Initialize the VideoSynth singleton
-const synth = new VideoSynth();
+// Lazy-load VideoSynth only when playback starts
+let synthInstance: any = null;
+async function getSynth() {
+  if (!synthInstance) {
+    const { VideoSynth } = await import('../video_synth');
+    synthInstance = new VideoSynth();
+  }
+  return synthInstance;
+}
 
 interface Scene {
   id: number;
   title: string;
-  duration: number; // in seconds
-  startTime: number; // in seconds
+  duration: number;
+  startTime: number;
   image: string;
   narration: string;
   visual: string;
@@ -31,192 +32,104 @@ interface Scene {
 }
 
 const SCENES: Scene[] = [
-  {
-    id: 1,
-    title: "The AI Swarm Age",
-    duration: 10,
-    startTime: 0,
-    image: "/assets/scenes/scene1.png",
-    narration: "AI agents are becoming the workforce of the future.",
-    visual: "Dark global map grid, thousands of autonomous AI agent nodes pulsing with active workflow metrics.",
-    action: "Neoclassical ambient tech score initializes. Soft heartbeat pulses engage."
-  },
-  {
-    id: 2,
-    title: "System Anomaly & Chaos",
-    duration: 12,
-    startTime: 10,
-    image: "/assets/scenes/scene2.png",
-    narration: "But every intelligent system creates new risks.",
-    visual: "Glitch transition, red threat vectors injecting databases, prompt injections and security alerts cascading.",
-    action: "Warning digital alarm triggers. Chaos static noise sweep sweeps the soundscape."
-  },
-  {
-    id: 3,
-    title: "Sentinel Swarm AI Reveal",
-    duration: 13,
-    startTime: 22,
-    image: "/assets/scenes/scene3.png",
-    narration: "Introducing Sentinel Swarm AI.",
-    visual: "Volumetric blue light sweeps away the crimson alerts, revealing the full Sentinel Swarm AI Command Center dashboard in 3D grid perspective.",
-    action: "Orchestral technology riser peaks, resolving into a majestic product reveal chime."
-  },
-  {
-    id: 4,
-    title: "The Agent Swarm Architecture",
-    duration: 13,
-    startTime: 35,
-    image: "/assets/scenes/scene4.png",
-    narration: "A self-governing swarm of intelligent security agents.",
-    visual: "Orchestration graph: User -> Planner -> Security -> Memory -> Validator -> Compliance -> Recovery. Data flows, rotating trust scores.",
-    action: "Rhythmic digital ticking, ascending synth chimes sync to data flow transits."
-  },
-  {
-    id: 5,
-    title: "Live Attack Lab Isolation",
-    duration: 14,
-    startTime: 48,
-    image: "/assets/scenes/scene5.png",
-    narration: "Threats detected. Analyzed. Neutralized.",
-    visual: "Intrusion isolation simulation. Red prompt injection tries to penetrate, but is blocked by a glowing blue forcefield ring.",
-    action: "Metallic forcefield clank triggers, alarm silenced."
-  },
-  {
-    id: 6,
-    title: "Swarm Self-Healing",
-    duration: 10,
-    startTime: 62,
-    image: "/assets/scenes/scene6.png",
-    narration: "Resilient by design. Self-healing by default.",
-    visual: "Recovery agent lasers scrub the infected validator node back to healthy green. Memory cache syncs from key vault.",
-    action: "Energy beam pulse sweeps, resolving to a high success chime."
-  },
-  {
-    id: 7,
-    title: "C-Level Executive GRC Dashboard",
-    duration: 10,
-    startTime: 72,
-    image: "/assets/scenes/scene7.png",
-    narration: "From technical defense to executive confidence.",
-    visual: "Sleek GRC overview, financial loss prevented ($530,000), compliance score 99/100, SOC2 audit cleared.",
-    action: "Smooth swipe transition sound, bright brass chords."
-  },
-  {
-    id: 8,
-    title: "2030 Secure Swarm Vision",
-    duration: 8,
-    startTime: 82,
-    image: "/assets/scenes/scene8.png",
-    narration: "The operating system for the age of autonomous intelligence.",
-    visual: "Thousands of agents collaborating globally in a secure lattice. Real-time trust graph, zero-trust active.",
-    action: "Majestic string swell peaks, transition to logo riser."
-  },
-  {
-    id: 9,
-    title: "Outro: Logo Reveal",
-    duration: 10,
-    startTime: 90,
-    image: "/assets/scenes/scene9.png",
-    narration: "SENTINEL SWARM AI: Secure. Govern. Scale. The Future of Autonomous AI Security.",
-    visual: "Fade to dark. Bold volumetric brand logo reveal of SENTINEL SWARM AI. Taglines fade in under.",
-    action: "Heavy sub-bass impact drop, cybernetic chime chime, tech echo tail."
-  }
+  { id: 1, title: "The AI Swarm Age", duration: 10, startTime: 0, image: "/assets/scenes/scene1.png", narration: "AI agents are becoming the workforce of the future.", visual: "Dark global map grid, thousands of autonomous AI agent nodes pulsing.", action: "Neoclassical ambient tech score initializes." },
+  { id: 2, title: "System Anomaly & Chaos", duration: 12, startTime: 10, image: "/assets/scenes/scene2.png", narration: "But every intelligent system creates new risks.", visual: "Glitch transition, red threat vectors injecting databases.", action: "Warning digital alarm triggers." },
+  { id: 3, title: "Sentinel Swarm AI Reveal", duration: 13, startTime: 22, image: "/assets/scenes/scene3.png", narration: "Introducing Sentinel Swarm AI.", visual: "Blue light sweeps away alerts, revealing the Command Center.", action: "Orchestral technology riser peaks." },
+  { id: 4, title: "Agent Swarm Architecture", duration: 13, startTime: 35, image: "/assets/scenes/scene4.png", narration: "A self-governing swarm of intelligent security agents.", visual: "Orchestration graph with data flows and trust scores.", action: "Rhythmic digital ticking, ascending synth chimes." },
+  { id: 5, title: "Live Attack Isolation", duration: 14, startTime: 48, image: "/assets/scenes/scene5.png", narration: "Threats detected. Analyzed. Neutralized.", visual: "Intrusion isolation with glowing blue forcefield ring.", action: "Metallic forcefield clank triggers." },
+  { id: 6, title: "Swarm Self-Healing", duration: 10, startTime: 62, image: "/assets/scenes/scene6.png", narration: "Resilient by design. Self-healing by default.", visual: "Recovery agent lasers scrub infected validator node.", action: "Energy beam pulse sweeps." },
+  { id: 7, title: "Executive GRC Dashboard", duration: 10, startTime: 72, image: "/assets/scenes/scene7.png", narration: "From technical defense to executive confidence.", visual: "Sleek GRC overview with financial loss prevented.", action: "Smooth swipe transition sound." },
+  { id: 8, title: "2030 Secure Vision", duration: 8, startTime: 82, image: "/assets/scenes/scene8.png", narration: "The operating system for autonomous intelligence.", visual: "Thousands of agents in secure global lattice.", action: "Majestic string swell peaks." },
+  { id: 9, title: "Logo Reveal", duration: 10, startTime: 90, image: "/assets/scenes/scene9.png", narration: "SENTINEL SWARM AI: Secure. Govern. Scale.", visual: "Bold volumetric brand logo reveal.", action: "Heavy sub-bass impact drop." },
 ];
 
-const TOTAL_DURATION = 100; // Total video length in seconds
+const TOTAL_DURATION = 100;
 
 export function CinematicRevealPlayer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted by default
   const [currentSceneIndex, setCurrentSceneIndex] = useState(0);
+  const [imagesLoaded, setImagesLoaded] = useState<Set<number>>(new Set([0, 1]));
 
   const theaterRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number | null>(null);
   const previousTimeRef = useRef<number | null>(null);
   const lastTriggeredSceneId = useRef<number | null>(null);
 
-  // Keyboard controls listener
+  // Preload adjacent scene images
+  useEffect(() => {
+    const toLoad = new Set(imagesLoaded);
+    for (let i = Math.max(0, currentSceneIndex - 1); i <= Math.min(SCENES.length - 1, currentSceneIndex + 2); i++) {
+      toLoad.add(i);
+    }
+    if (toLoad.size !== imagesLoaded.size) {
+      setImagesLoaded(toLoad);
+    }
+  }, [currentSceneIndex]);
+
+  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        setIsPlaying(p => !p);
-      } else if (e.code === 'KeyM') {
-        setIsMuted(m => !m);
-      } else if (e.code === 'KeyR') {
-        handleRestart();
-      }
+      if (e.code === 'Space') { e.preventDefault(); setIsPlaying(p => !p); }
+      else if (e.code === 'KeyM') { setIsMuted(m => !m); }
+      else if (e.code === 'KeyR') { handleRestart(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Update mute status in the synth singleton
+  // Mute sync
   useEffect(() => {
-    synth.setMute(isMuted);
+    if (synthInstance) synthInstance.setMute(isMuted);
   }, [isMuted]);
 
-  // Audio trigger effect based on current scene transition
+  // Audio trigger on scene change
   useEffect(() => {
     const activeScene = SCENES[currentSceneIndex];
     if (isPlaying && activeScene && lastTriggeredSceneId.current !== activeScene.id) {
       lastTriggeredSceneId.current = activeScene.id;
-      
-      // Trigger sound effects for corresponding scenes
-      switch (activeScene.id) {
-        case 1:
-          synth.startMusic();
-          break;
-        case 2:
-          synth.triggerChaosGlitch();
-          break;
-        case 3:
-          synth.triggerProductReveal();
-          break;
-        case 5:
-          synth.triggerBlockEffect();
-          break;
-        case 6:
-          synth.triggerHealEffect();
-          break;
-        case 9:
-          synth.triggerLogoSubDrop();
-          break;
-        default:
-          break;
-      }
+      getSynth().then(synth => {
+        switch (activeScene.id) {
+          case 1: synth.startMusic(); break;
+          case 2: synth.triggerChaosGlitch(); break;
+          case 3: synth.triggerProductReveal(); break;
+          case 5: synth.triggerBlockEffect(); break;
+          case 6: synth.triggerHealEffect(); break;
+          case 9: synth.triggerLogoSubDrop(); break;
+        }
+      });
     }
   }, [currentSceneIndex, isPlaying]);
 
-  // Stop sound design when paused or finished
+  // Play/pause synth sync
   useEffect(() => {
     if (!isPlaying) {
-      synth.stopMusic();
+      if (synthInstance) { synthInstance.stopMusic(); }
       lastTriggeredSceneId.current = null;
     } else {
-      synth.startMusic();
+      getSynth().then(synth => synth.startMusic());
     }
   }, [isPlaying]);
 
-  // Clean up synthesizer on component unmount
+  // Cleanup
   useEffect(() => {
     return () => {
-      synth.stopMusic();
+      if (synthInstance) { synthInstance.stopMusic(); }
       lastTriggeredSceneId.current = null;
     };
   }, []);
 
-  // Main animation frame playback tick loop
+  // Playback loop
   const animatePlayback = (time: number) => {
     if (previousTimeRef.current !== null) {
-      const delta = (time - previousTimeRef.current) / 1000; // convert to seconds
+      const delta = (time - previousTimeRef.current) / 1000;
       setCurrentTime(prev => {
         const next = prev + delta * playbackSpeed;
         if (next >= TOTAL_DURATION) {
           setIsPlaying(false);
-          synth.stopMusic();
+          if (synthInstance) synthInstance.stopMusic();
           return TOTAL_DURATION;
         }
         return next;
@@ -231,148 +144,94 @@ export function CinematicRevealPlayer() {
       previousTimeRef.current = performance.now();
       requestRef.current = requestAnimationFrame(animatePlayback);
     } else {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
-      }
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
       previousTimeRef.current = null;
     }
-    return () => {
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
+    return () => { if (requestRef.current) cancelAnimationFrame(requestRef.current); };
   }, [isPlaying, playbackSpeed]);
 
-  // Detect and update current scene based on currentTime
+  // Scene detection
   useEffect(() => {
-    const sceneIdx = SCENES.findIndex(
-      (scene) => currentTime >= scene.startTime && currentTime < (scene.startTime + scene.duration)
-    );
-    if (sceneIdx !== -1 && sceneIdx !== currentSceneIndex) {
-      setCurrentSceneIndex(sceneIdx);
-    } else if (currentTime === TOTAL_DURATION) {
-      setCurrentSceneIndex(SCENES.length - 1);
-    }
+    const idx = SCENES.findIndex(s => currentTime >= s.startTime && currentTime < s.startTime + s.duration);
+    if (idx !== -1 && idx !== currentSceneIndex) setCurrentSceneIndex(idx);
+    else if (currentTime >= TOTAL_DURATION) setCurrentSceneIndex(SCENES.length - 1);
   }, [currentTime, currentSceneIndex]);
 
   const handlePlayPause = () => {
-    if (currentTime >= TOTAL_DURATION) {
-      setCurrentTime(0);
-    }
+    if (currentTime >= TOTAL_DURATION) setCurrentTime(0);
     setIsPlaying(!isPlaying);
   };
 
   const handleRestart = () => {
-    synth.stopMusic();
+    if (synthInstance) { synthInstance.stopMusic(); }
     lastTriggeredSceneId.current = null;
     setCurrentTime(0);
     setCurrentSceneIndex(0);
-    if (!isPlaying) {
-      setIsPlaying(true);
-    } else {
-      synth.startMusic();
-    }
+    if (!isPlaying) setIsPlaying(true);
+    else { getSynth().then(s => s.startMusic()); }
   };
 
   const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const targetVal = parseFloat(e.target.value);
-    
-    // Stop music during drag so synthesizer resets properly
-    if (isPlaying) {
-      synth.stopMusic();
-      lastTriggeredSceneId.current = null;
-    }
-    
-    setCurrentTime(targetVal);
-    
-    // Recalculate scene immediately on scrubber drag
-    const sceneIdx = SCENES.findIndex(
-      (scene) => targetVal >= scene.startTime && targetVal < (scene.startTime + scene.duration)
-    );
-    if (sceneIdx !== -1) {
-      setCurrentSceneIndex(sceneIdx);
-    }
-
-    if (isPlaying) {
-      // Small timeout to allow state to settle before restarting synth loop
-      setTimeout(() => {
-        if (isPlaying) synth.startMusic();
-      }, 50);
-    }
-  };
-
-  const handleSpeedChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPlaybackSpeed(parseFloat(e.target.value));
+    const val = parseFloat(e.target.value);
+    if (isPlaying && synthInstance) { synthInstance.stopMusic(); lastTriggeredSceneId.current = null; }
+    setCurrentTime(val);
+    const idx = SCENES.findIndex(s => val >= s.startTime && val < s.startTime + s.duration);
+    if (idx !== -1) setCurrentSceneIndex(idx);
+    if (isPlaying) { setTimeout(() => { if (isPlaying && synthInstance) synthInstance.startMusic(); }, 50); }
   };
 
   const toggleFullscreen = () => {
     if (!theaterRef.current) return;
-    if (!document.fullscreenElement) {
-      theaterRef.current.requestFullscreen().catch((err) => {
-        console.error("Failed to enter fullscreen mode: ", err);
-      });
-    } else {
-      document.exitFullscreen();
-    }
+    if (!document.fullscreenElement) theaterRef.current.requestFullscreen().catch(() => {});
+    else document.exitFullscreen();
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
 
   const activeScene = SCENES[currentSceneIndex];
 
   return (
     <div className="cinematic-container">
-      {/* 16:9 Theater Player Box */}
       <div className="cinematic-theater" ref={theaterRef}>
         <div className="cinematic-screen">
           {SCENES.map((scene, idx) => {
             const isActive = idx === currentSceneIndex;
-            const isChaos = scene.id === 2;
+            const shouldLoad = imagesLoaded.has(idx);
             return (
-              <div 
-                key={scene.id} 
-                className={`cinematic-slide ken-burns-${scene.id} ${isActive ? 'active' : ''} ${isChaos ? 'scene-chaos' : ''}`}
+              <div
+                key={scene.id}
+                className={`cinematic-slide ken-burns-${scene.id} ${isActive ? 'active' : ''} ${scene.id === 2 ? 'scene-chaos' : ''}`}
               >
-                {/* Widescreen Image Stills */}
-                <img 
-                  src={scene.image} 
-                  alt={scene.title} 
-                  className="cinematic-img" 
-                  onError={(e) => {
-                    // Fallback to stylized loading box if assets fail
-                    (e.target as any).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900"><rect width="100%" height="100%" fill="%230b0d12"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="28" fill="%230078d4">SENTINEL SWARM AI - SCENE STILL</text></svg>';
-                  }}
-                />
-
-                {/* Glitch Overlay (Scene 2 specific) */}
-                {isChaos && <div className="cinematic-glitch-overlay"></div>}
-
-                {/* Lighting Sweep */}
-                <div className="cinematic-light-sweep"></div>
+                {shouldLoad && (
+                  <img
+                    src={scene.image}
+                    alt={scene.title}
+                    className="cinematic-img"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900"><rect width="100%" height="100%" fill="%230b0d12"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24" fill="%230078d4">${scene.title}</text></svg>`;
+                    }}
+                  />
+                )}
+                {scene.id === 2 && <div className="cinematic-glitch-overlay" />}
+                <div className="cinematic-light-sweep" />
               </div>
             );
           })}
 
-          {/* Letterbox & Vignette Overlay */}
           <div className="cinematic-overlay">
-            {/* Top header details (only in fullscreen or overlay) */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', pointerEvents: 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', fontWeight: 600 }}>
-                <Tv size={14} className="trend-up" />
-                <span>SENTINEL SWARM AI KEYNOTE PRESENTATION</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', fontWeight: 600 }}>
+                <Tv size={12} aria-hidden="true" />
+                <span>SENTINEL SWARM AI KEYNOTE</span>
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', fontFamily: 'monospace' }}>
-                4K UHD // 16:9 // COMPLIANT
+              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', fontFamily: 'monospace' }}>
+                16:9 // HD
               </div>
             </div>
 
-            {/* Apple/Build Style Bottom Captions */}
             <div className="cinematic-subtitles">
-              <div className="cinematic-narration">
-                "{activeScene?.narration}"
-              </div>
+              <div className="cinematic-narration">"{activeScene?.narration}"</div>
               <div className="cinematic-subtext">
                 {activeScene?.title} — {formatTime(currentTime)} / {formatTime(TOTAL_DURATION)}
               </div>
@@ -380,28 +239,21 @@ export function CinematicRevealPlayer() {
           </div>
         </div>
 
-        {/* Video Scrubber Tracker segments */}
-        <div className="scene-timeline-map">
-          {SCENES.map((scene, idx) => {
-            const passed = currentTime > scene.startTime;
-            const active = idx === currentSceneIndex;
-            const segmentWidth = `${(scene.duration / TOTAL_DURATION) * 100}%`;
-            return (
-              <div 
-                key={scene.id}
-                className={`scene-timeline-segment ${passed ? 'passed' : ''} ${active ? 'active' : ''}`}
-                style={{ width: segmentWidth }}
-              />
-            );
-          })}
+        <div className="scene-timeline-map" role="progressbar" aria-valuenow={currentTime} aria-valuemin={0} aria-valuemax={TOTAL_DURATION}>
+          {SCENES.map((scene, idx) => (
+            <div
+              key={scene.id}
+              className={`scene-timeline-segment ${currentTime > scene.startTime ? 'passed' : ''} ${idx === currentSceneIndex ? 'active' : ''}`}
+              style={{ width: `${(scene.duration / TOTAL_DURATION) * 100}%` }}
+            />
+          ))}
         </div>
 
-        {/* Controller Bar */}
-        <div className="cinematic-controls acrylic">
+        <div className="cinematic-controls">
           <div className="cinematic-progress-container">
             <span className="cinematic-time-label">{formatTime(currentTime)}</span>
             <div style={{ position: 'relative', flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-              <input 
+              <input
                 type="range"
                 min="0"
                 max={TOTAL_DURATION}
@@ -409,56 +261,41 @@ export function CinematicRevealPlayer() {
                 value={currentTime}
                 onChange={handleScrub}
                 className="cinematic-scrubber"
+                aria-label="Playback position"
               />
-              <div 
-                className="cinematic-progress-fill" 
-                style={{ width: `${(currentTime / TOTAL_DURATION) * 100}%` }}
-              />
+              <div className="cinematic-progress-fill" style={{ width: `${(currentTime / TOTAL_DURATION) * 100}%` }} />
             </div>
             <span className="cinematic-time-label">{formatTime(TOTAL_DURATION)}</span>
           </div>
 
           <div className="cinematic-actions-row">
             <div className="cinematic-btn-group">
-              <button className="btn btn-secondary" onClick={handlePlayPause} style={{ padding: '8px 14px' }}>
+              <button className="btn btn-secondary" onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'} type="button">
                 {isPlaying ? <Pause size={16} /> : <Play size={16} />}
               </button>
-              <button className="btn btn-secondary" onClick={handleRestart} style={{ padding: '8px 14px' }}>
+              <button className="btn btn-secondary" onClick={handleRestart} aria-label="Restart" type="button">
                 <RotateCcw size={16} />
               </button>
-              <button className="btn btn-secondary" onClick={() => setIsMuted(!isMuted)} style={{ padding: '8px 14px' }}>
+              <button className="btn btn-secondary" onClick={() => setIsMuted(!isMuted)} aria-label={isMuted ? 'Unmute' : 'Mute'} type="button">
                 {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </button>
-              
-              <span className="cinematic-scene-tag">
-                {activeScene?.title}
-              </span>
+              <span className="cinematic-scene-tag">{activeScene?.title}</span>
             </div>
 
             <div className="cinematic-btn-group">
-              {/* Playback speed selector */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>SPEED:</span>
-                <select 
-                  value={playbackSpeed} 
-                  onChange={handleSpeedChange}
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid var(--border-subtle)',
-                    color: '#ffffff',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '0.8rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="1">1.0x (Nominal)</option>
-                  <option value="1.5">1.5x (Accelerated)</option>
-                  <option value="2">2.0x (Fast)</option>
-                </select>
-              </div>
-
-              <button className="btn btn-secondary" onClick={toggleFullscreen} style={{ padding: '8px 14px' }}>
+              <label className="sr-only" htmlFor="playback-speed">Playback speed</label>
+              <select
+                id="playback-speed"
+                className="glass-select"
+                value={playbackSpeed}
+                onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+                style={{ width: 'auto', padding: '4px 8px', fontSize: '0.75rem' }}
+              >
+                <option value="1">1.0x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2.0x</option>
+              </select>
+              <button className="btn btn-secondary" onClick={toggleFullscreen} aria-label="Toggle fullscreen" type="button">
                 <Maximize size={16} />
               </button>
             </div>
@@ -466,50 +303,46 @@ export function CinematicRevealPlayer() {
         </div>
       </div>
 
-      {/* Specifications & Technical Blueprint panel */}
-      <div className="dashboard-card acrylic cinematic-specs-card">
+      <div className="cinematic-specs-card">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sparkles size={16} className="trend-up" />
-          <span className="card-title" style={{ color: '#ffffff' }}>Cinematic Reveal Audio-Visual Specifications</span>
+          <Sparkles size={16} className="text-info" aria-hidden="true" />
+          <span className="card-title">Audio-Visual Specifications</span>
         </div>
         <div className="specs-grid">
           <div className="spec-item">
-            <span className="spec-label">Style Directive</span>
-            <span className="spec-value">Microsoft Build Keynote + Apple Launch Event</span>
+            <span className="spec-label">Style</span>
+            <span className="spec-value">Build Keynote + Apple Launch Event</span>
           </div>
           <div className="spec-item">
-            <span className="spec-label">Synthesized Audio Soundtrack</span>
-            <span className="spec-value">Neoclassical Technology Synth (Web Audio API)</span>
+            <span className="spec-label">Audio</span>
+            <span className="spec-value">Neoclassical Synth (Web Audio API)</span>
           </div>
           <div className="spec-item">
             <span className="spec-label">Visual Quality</span>
-            <span className="spec-value">4K Ultra HD Conceptual Stills</span>
+            <span className="spec-value">HD Conceptual Stills</span>
           </div>
           <div className="spec-item">
-            <span className="spec-label">Active Core Theme</span>
-            <span className="spec-value">Secure Operating System for Autonomous AI</span>
+            <span className="spec-label">Theme</span>
+            <span className="spec-value">Secure OS for Autonomous AI</span>
           </div>
         </div>
 
         <hr style={{ border: 'none', borderBottom: '1px solid var(--border-subtle)', margin: '4px 0' }} />
 
-        {/* Scene logs detail panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-secondary)', textTransform: 'uppercase' }}>
-            Active Scene Stage Directions & Synthesis Log
-          </span>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 2fr', gap: '12px', fontSize: '0.8rem' }}>
-            <div style={{ borderLeft: '2px solid var(--accent-primary)', paddingLeft: '8px' }}>
-              <strong style={{ color: '#ffffff' }}>Visual Stage:</strong>
-              <div style={{ color: 'var(--color-text-secondary)', marginTop: '4px' }}>{activeScene?.visual}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <span className="spec-label">Active Scene Details</span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '0.78rem' }}>
+            <div className="panel-reasoning-step">
+              <strong style={{ color: '#fff' }}>Visual:</strong>
+              <div style={{ color: 'var(--color-text-secondary)', marginTop: '3px' }}>{activeScene?.visual}</div>
             </div>
-            <div style={{ borderLeft: '2px solid var(--accent-warning)', paddingLeft: '8px' }}>
-              <strong style={{ color: '#ffffff' }}>Speech Narration:</strong>
-              <div style={{ color: 'var(--color-text-secondary)', marginTop: '4px' }}>"{activeScene?.narration}"</div>
+            <div className="panel-reasoning-step" style={{ borderLeftColor: 'var(--accent-warning)' }}>
+              <strong style={{ color: '#fff' }}>Narration:</strong>
+              <div style={{ color: 'var(--color-text-secondary)', marginTop: '3px' }}>"{activeScene?.narration}"</div>
             </div>
-            <div style={{ borderLeft: '2px solid var(--accent-success)', paddingLeft: '8px' }}>
-              <strong style={{ color: '#ffffff' }}>Audio Synthesis Event:</strong>
-              <div style={{ color: 'var(--color-text-secondary)', marginTop: '4px' }}>{activeScene?.action}</div>
+            <div className="panel-reasoning-step" style={{ borderLeftColor: 'var(--accent-success)' }}>
+              <strong style={{ color: '#fff' }}>Audio:</strong>
+              <div style={{ color: 'var(--color-text-secondary)', marginTop: '3px' }}>{activeScene?.action}</div>
             </div>
           </div>
         </div>
